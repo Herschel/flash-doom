@@ -659,7 +659,10 @@ void IdentifyVersion (void)
 	return;
     }
 
-    if ( !access (doom2fwad,R_OK) )
+	// MIKE: Alchemy has a bug where supplyFile reference is 'one-usse'
+	// so this access works, but the following open fails with 'file not found'
+	// I am hardcoding shareware doom1.wad for now.  this is bad 12/03/08
+	if ( !access (doom2fwad,R_OK) )
     {
 	gamemode = commercial;
 	// C'est ridicule!
