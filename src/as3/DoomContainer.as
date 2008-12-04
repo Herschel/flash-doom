@@ -41,8 +41,6 @@ package
 
 		public function DoomContainer()
 		{
-			stage.quality = StageQuality.LOW;
-
 			_preloader = new DoomPreloader();
 			
 			_preloader.addEventListener( Event.COMPLETE, loadingComplete );
@@ -54,10 +52,12 @@ package
 		{
 			removeChild( _preloader );
 			_preloader = null;
+			
+			stage.quality = StageQuality.LOW;
 
 			var DoomGameClass:Class = Class( getDefinitionByName("DoomGame") );
 			_doomGame = Sprite( new DoomGameClass() );
-			
+						
 			addChild( _doomGame );
 		}
 	}
