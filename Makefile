@@ -88,10 +88,10 @@ OBJS=				\
 		$(O)/sounds.o
 
 AS3OBJS=							\
-		$(AS3SRC)\DoomContainer.as	\
-		$(AS3SRC)\DoomGame.as		\
-		$(AS3SRC)\Preloader.as		\
-		$(O)\DoomPreloader.swc
+		$(AS3SRC)/DoomContainer.as	\
+		$(AS3SRC)/DoomGame.as		\
+		$(AS3SRC)/Preloader.as		\
+		$(O)/DoomPreloader.swc
 
 .PHONY:	all
 all:	$(O)/DoomGame.swf
