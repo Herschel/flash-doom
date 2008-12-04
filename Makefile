@@ -13,7 +13,7 @@ LIBS=-lnsl -lm
 MXMLC=mxmlc
 MXMLCFLAGS=--target-player=10.0.0 -default-frame-rate=35 -default-size=960,600 -default-background-color=0x000000 \
 	-optimize=true -frames.frame=2,DoomGame $(AS3SRC)/DoomContainer.as \
-	-title="Doom" -contributor="Mike Welsh" -creator="id Software" -date="12/02/2008"
+	-title="Doom" -creator="id Software" -date="12/02/2008"
 MXMLCLIBS=-library-path+=$(O)/doom.swc,$(O)/DoomPreloader.swc
 
 ALCPATH='$(ALCHEMY_HOME)/achacks:$(PATH)'

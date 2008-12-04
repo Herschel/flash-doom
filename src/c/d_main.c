@@ -359,11 +359,8 @@ void D_Display (void)
 extern  boolean         demorecording;
 
 // MIKE 11/08 main game loop, called every frame by Flash
-AS3_Val D_DoomLoop (void *data, AS3_Val args)
+void D_DoomLoop (void)
 {
-	AS3_Val flashframebuffer;
-	AS3_Val flashsoundbuffer;
-
 	// frame syncronous IO operations
 	I_StartFrame ();                
 	

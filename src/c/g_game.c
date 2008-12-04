@@ -1210,24 +1210,14 @@ void G_LoadGame (int slot)
 
 void G_DoLoadGame (void) 
 { 
-    int		length; 
     int		i; 
     int		a,b,c; 
     char	vcheck[VERSIONSIZE]; 
-	AS3_Val saveGameByteArray;
-	AS3_Val lengthVal;
 
     gameaction = ga_nothing; 
 //	savebuffer = screens[1]+0x4000; 
 
-	saveGameByteArray = getSaveGame(savegameslot, false);
-	lengthVal = AS3_GetS(saveGameByteArray, "length");
-
-    length = AS3_IntValue(lengthVal);
-	//AS3_ByteArray_seek( saveGameByteArray, 0, SEEK_SET );
-	AS3_ByteArray_readBytes(&savebuffer, saveGameByteArray, length);
-	AS3_Release(lengthVal);
-	AS3_Release(saveGameByteArray);
+	F_ReadSaveGame( savegameslot, savebuffer );
     save_p = savebuffer + SAVESTRINGSIZE;
     
     // skip the description field 
@@ -1294,7 +1284,6 @@ void G_DoSaveGame (void)
     char*	description; 
     int		length; 
     int		i; 
-	AS3_Val saveGameByteArray; // MIKE 11/08
 
     if (M_CheckParm("-cdrom"))
 	sprintf(name,"c:\\doomdata\\"SAVEGAMENAME"%d.dsg",savegameslot);
@@ -1336,10 +1325,7 @@ void G_DoSaveGame (void)
 	 
     players[consoleplayer].message = GGSAVED; 
 
-	// MIKE 11/08
-	saveGameByteArray = getSaveGame(savegameslot, true); // MIKE
-	AS3_ByteArray_writeBytes( saveGameByteArray, (void*)savebuffer, length );
-	AS3_Release(saveGameByteArray);
+	F_WriteSaveGame( savegameslot, savebuffer );
 
     // draw the pattern into the back screen
     R_FillBackScreen ();	

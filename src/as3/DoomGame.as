@@ -198,20 +198,18 @@ package
 			_keys[e.keyCode] = false;
 		}
 		
-		public function getSaveGame(i:int, clear:Boolean):ByteArray
+		public function getSaveGame(i:int):ByteArray
 		{
 			if (!_saveData.data.saveGames || !_saveData.data.saveGames[i])
 				return new ByteArray();
-			
-			if (clear)_saveData.data.saveGames[i].clear();
 			
 			_saveData.data.saveGames[i].position = 0;
 			return _saveData.data.saveGames[i];
 		}
 
-		public function goToNewgroundsGames():void
+		public function goToURL(url:String):void
 		{
-			navigateToURL(new URLRequest("http://www.newgrounds.com/game"), "_blank");
+			navigateToURL(new URLRequest(url), "_blank");
 		}
 		
 		private function soundCompleteHandler(e:Event):void

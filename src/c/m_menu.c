@@ -515,10 +515,6 @@ void M_ReadSaveStrings(void)
     int             count;
     int             i;
     char    name[256];
-	AS3_Val saveGameByteArray; // MIKE 11/08
-	AS3_Val lengthVal; // MIKE
-	int length;
-
 
     for (i = 0;i < load_end;i++)
     {
@@ -537,22 +533,17 @@ void M_ReadSaveStrings(void)
 	count = read (handle, &savegamestrings[i], SAVESTRINGSIZE);
 	close (handle);*/
 
-	saveGameByteArray = getSaveGame(i, false);
-	lengthVal = AS3_GetS(saveGameByteArray, "length");
-	length = AS3_IntValue(lengthVal);
-	if( length == 0 )
+	
+	
+	if( !F_GetSaveGameName( i, &savegamestrings[i][0] ) )
 	{
-		strcpy(&savegamestrings[i][0],EMPTYSTRING);
 	    LoadMenu[i].status = 0;
 	}
 	else
 	{
-		//AS3_ByteArray_seek( saveGameByteArray, 0, SEEK_SET );
-		AS3_ByteArray_readBytes(&savegamestrings[i][0], saveGameByteArray, SAVESTRINGSIZE);
 		LoadMenu[i].status = 1;
 	}
-	AS3_Release( saveGameByteArray );
-	AS3_Release( lengthVal );
+
     }
 }
 
@@ -1096,8 +1087,8 @@ int     quitsounds2[8] =
     sfx_sgtatk
 };
 
-
-
+// MIKE 11/08 custom quit
+#define QUIT_LINK "http://www.newgrounds.com/game"
 void M_QuitResponse(int ch)
 {
     if (ch != 'y')
@@ -1110,7 +1101,9 @@ void M_QuitResponse(int ch)
 	else
 	    S_StartSound(NULL,quitsounds[(gametic>>2)&7]);
 
-	AS3_CallTS("goToNewgroundsGames", thiz, "");
+	F_ShowLink(QUIT_LINK);
+	M_EndGameResponse('y');
+
 	return;
 
 	I_WaitVBL(105);

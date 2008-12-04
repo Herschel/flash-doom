@@ -31,23 +31,21 @@
 #define __D_MAIN__
 
 #include "d_event.h"
-#include <avm2-libc/include/AS3.h>
 
 #ifdef __GNUG__
 #pragma interface
 #endif
-
-
 
 #define MAXWADFILES             20
 extern char*		wadfiles[MAXWADFILES];
 
 void D_AddFile (char *file);
 
-// MIKE 11/08
-extern AS3_Val thiz;
-AS3_Val getSaveGame(int i, int clear);
-
+// MIKE 12/04/08
+boolean F_GetSaveGameName(int slot, char* dst);
+void F_WriteSaveGame(int slot, byte* buffer);
+void F_ReadSaveGame(int slot, byte* buffer);
+void F_ShowLink(const char* url);
 
 // D_DoomMain()
 // Not a globally visible function, just included for source reference,
@@ -55,7 +53,7 @@ AS3_Val getSaveGame(int i, int clear);
 // If not overrided by user input, calls N_AdvanceDemo.
 //
 void D_DoomMain (void);
-AS3_Val D_DoomLoop (void *data, AS3_Val args);
+void D_DoomLoop (void);
 
 // Called by IO functions when input is detected.
 void D_PostEvent (event_t* ev);
