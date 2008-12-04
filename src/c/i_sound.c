@@ -529,12 +529,14 @@ int I_SoundIsPlaying(int handle)
 //  hardware channels (left and right, that is).
 //
 // This function currently supports only 16bit.
-// MIKE
+// MIKE need this endian swap
 #define ntohl(x) \
         ((unsigned long int)((((unsigned long int)(x) & 0x000000ffU) << 24) | \
                              (((unsigned long int)(x) & 0x0000ff00U) <<  8) | \
                              (((unsigned long int)(x) & 0x00ff0000U) >>  8) | \
                              (((unsigned long int)(x) & 0xff000000U) >> 24)))
+
+#define SOUND_AMPLIFY 2.0f
 
 void I_UpdateSound( void )
 {
@@ -639,12 +641,12 @@ void I_UpdateSound( void )
 	//else
 	//    *rightout = dr;
 
-	if (dl > 0x7fff)
+	// amplify
+	fl = SOUND_AMPLIFY/32768.0f * (float)dl;
+	if (fl > 1.0)
 	    fl = 1.0f;
-	else if (dl < -0x8000)
+	else if(fl < -1.0f)
 	    fl = -1.0f;
-	else
-	    fl = (float)dl/32768.0f;
 
 	// Same for right hardware channel.
 	if (dr > 0x7fff)
