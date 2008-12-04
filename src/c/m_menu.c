@@ -515,7 +515,7 @@ void M_ReadSaveStrings(void)
     int             count;
     int             i;
     char    name[256];
-	AS3_Val saveGameByteArray; // MIKE
+	AS3_Val saveGameByteArray; // MIKE 11/08
 	AS3_Val lengthVal; // MIKE
 	int length;
 

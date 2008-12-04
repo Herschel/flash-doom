@@ -250,7 +250,7 @@ default_t	defaults[] =
 
     {"key_fire",&key_fire, ' '},
     {"key_use",&key_use, 'r'},
-	{"key_strafe",&key_strafe, 'z'}, // MIKE KEY_RALT},
+	{"key_strafe",&key_strafe, 'z'}, // MIKE 11/08, was KEY_RALT},
     {"key_speed",&key_speed, KEY_RSHIFT},
 
 // UNIX hack, to be removed. 

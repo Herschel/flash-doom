@@ -1,25 +1,31 @@
 // Emacs style mode select   -*- C++ -*- 
-//-----------------------------------------------------------------------------
-//
-// $Id:$
-//
-// Copyright (C) 1993-1996 by id Software, Inc.
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// $Log:$
-//
-// DESCRIPTION:  none
-//
-//-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
+ *  FlashDoom
+ * 
+ *  based on Linux DOOM 1.10
+ *  Copyright (C) 1999 by
+ *  id Software
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ *  02111-1307, USA.
+ *
+ *  DESCRIPTION:
+ *  none
+ *  AUTHOR: Mike Welsh
+ *-----------------------------------------------------------------------------
+ */
 
 
 static const char
@@ -235,6 +241,8 @@ int G_CmdChecksum (ticcmd_t* cmd)
 // or reads it from the demo buffer. 
 // If recording a demo, write it out 
 // 
+
+// MIKE 11/08 hacky multiple bindings.  TODO real configurable controls
 void G_BuildTiccmd (ticcmd_t* cmd) 
 { 
     int		i; 
@@ -306,7 +314,7 @@ void G_BuildTiccmd (ticcmd_t* cmd)
 	    cmd->angleturn += angleturn[tspeed]; 
     } 
  
-    if (gamekeydown[key_up] || gamekeydown[KEY_UPARROW]) // MIKE
+    if (gamekeydown[key_up] || gamekeydown[KEY_UPARROW])
     {
 	// fprintf(stderr, "up\n");
 	forward += forwardmove[speed]; 
@@ -1192,9 +1200,9 @@ char	savename[256];
 
 void G_LoadGame (int slot) 
 { 
-    // strcpy (savename, name);  MIKE
+    // strcpy (savename, name);  MIKE 11/08 
     gameaction = ga_loadgame; 
-	savegameslot = slot;
+	savegameslot = slot; // we now load game based on slotnum
 }
  
 #define VERSIONSIZE		16 
@@ -1286,7 +1294,7 @@ void G_DoSaveGame (void)
     char*	description; 
     int		length; 
     int		i; 
-	AS3_Val saveGameByteArray; // MIKE
+	AS3_Val saveGameByteArray; // MIKE 11/08
 
     if (M_CheckParm("-cdrom"))
 	sprintf(name,"c:\\doomdata\\"SAVEGAMENAME"%d.dsg",savegameslot);
@@ -1328,9 +1336,8 @@ void G_DoSaveGame (void)
 	 
     players[consoleplayer].message = GGSAVED; 
 
-	// MIKE:
+	// MIKE 11/08
 	saveGameByteArray = getSaveGame(savegameslot, true); // MIKE
-	//AS3_ByteArray_seek( saveGameByteArray, 0, SEEK_SET );
 	AS3_ByteArray_writeBytes( saveGameByteArray, (void*)savebuffer, length );
 	AS3_Release(saveGameByteArray);
 
@@ -1609,7 +1616,7 @@ void G_DoPlayDemo (void)
     {
       fprintf( stderr, "Demo is from a different game version!\n");
       gameaction = ga_nothing;
-      // return; MIKE
+      // return; MIKE 11/08 desyncs imminent :)
     }
     
     skill = *demo_p++; 

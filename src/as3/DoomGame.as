@@ -69,8 +69,8 @@ package
 		private static const SCREEN_WIDTH:uint = 320;
 		private static const SCREEN_HEIGHT:uint = 200;
 		
-		private static const GAME_SOUNDBUFF_OFFSET:uint = 788;
-		private static const GAME_SAMPLES:uint = 2048 - GAME_SOUNDBUFF_OFFSET;	// 2048 - 788 overlap from previous frame
+		private static const GAME_SAMPLES:uint = 1260;	// 2048 - 788 overlap from previous frame
+		private static const GAME_SOUNDBUFF_OFFSET:uint = 2048 - GAME_SAMPLES;
 		private static const FLASH_SAMPLES:uint = 2048;
 		private static const FLASH_MIN_SAMPLES:uint = 2048;
 		private static const CHANNELS:uint = 2;

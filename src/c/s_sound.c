@@ -325,7 +325,7 @@ S_StartSoundAtVolume
   }
   
   // hacks to vary the sfx pitches
- /* if (sfx_id >= sfx_sawup MIKE
+ /* if (sfx_id >= sfx_sawup MIKE 11/08 no one likes this :)
       && sfx_id <= sfx_sawhit)
   {	
     pitch += 8 - (M_Random()&15);
@@ -374,7 +374,7 @@ S_StartSoundAtVolume
 
     // DOS remains, 8bit handling
     //sfx->data = (void *) W_CacheLumpNum(sfx->lumpnum, PU_MUSIC);
-     /*fprintf( stderr, MIKE
+     /*fprintf( stderr, MIKE 11/08
     	     "S_StartSoundAtVolume: loading %d (lump %d) : 0x%x\n",
            sfx_id, sfx->lumpnum, (int)sfx->data );*/
     

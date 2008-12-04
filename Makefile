@@ -110,10 +110,12 @@ swc:
 $(O)/DoomGame.swf: $(AS3OBJS) swc
 	$(MXMLC) $(MXMLCFLAGS) $(MXMLCLIBS) -o $@
 	
+# alchemy gcc/llvm seems to be sensitive to output path.  so do doom.swc in root project folder
+# and move it to where we want
 $(O)/doom.swc:	$(OBJS) $(O)/i_main.o
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) $(O)/i_main.o \
 	-o doom.swc $(LIBS)
-	mv doom.swc $@  # why? the package outputted by alchemy seems to be affected by the path
+	mv doom.swc $@ 
 
 $(O)/%.o:	$(CSRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@

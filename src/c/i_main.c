@@ -32,7 +32,7 @@ rcsid[] = "$Id: i_main.c,v 1.4 1997/02/03 22:45:10 b1 Exp $";
 #include "m_argv.h"
 #include <avm2-libc/include/AS3.h>
 
-AS3_Val thiz; // MIKE
+AS3_Val thiz;
 
 AS3_Val getSaveGame(int i, int clear)
 {

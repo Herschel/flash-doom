@@ -188,12 +188,11 @@ void R_InitSpriteDefs (char** namelist)
     int		patched;
 		
     // count the number of sprite names
-    //check = namelist;
-    //while (*check[0] != NULL)
-	//check++;
+    check = namelist;
+    while (*check[0] != NULL)
+	check++;
 	
-    numsprites = NUMSPRITES;
-	
+	numsprites = NUMSPRITES;
     if (!numsprites)
 	return;
 		

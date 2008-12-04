@@ -74,8 +74,8 @@ boolean NetListen (void);
 // NETWORKING
 //
 
-// int	DOOMPORT =	(IPPORT_USERRESERVED +0x1d ); MIKE
-int	DOOMPORT =	(5000 +0x1d );
+// int	DOOMPORT =	(IPPORT_USERRESERVED +0x1d ); MIKE 11/08.  alchemy doesn't like IPPORT_USERRESERVED
+int	DOOMPORT =	(5000 + 0x1d);
 
 int			sendsocket;
 int			insocket;

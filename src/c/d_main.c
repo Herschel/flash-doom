@@ -1,29 +1,31 @@
 // Emacs style mode select   -*- C++ -*- 
-//-----------------------------------------------------------------------------
-//
-// $Id:$
-//
-// Copyright (C) 1993-1996 by id Software, Inc.
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either version 2
-// of the License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// $Log:$
-//
-// DESCRIPTION:
-//	DOOM main program (D_DoomMain) and game loop (D_DoomLoop),
-//	plus functions to determine game mode (shareware, registered),
-//	parse command line parameters, configure game parameters (turbo),
-//	and call the startup functions.
-//
-//-----------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
+ *  FlashDoom
+ * 
+ *  based on Linux DOOM 1.10
+ *  Copyright (C) 1999 by
+ *  id Software
+ *
+ *  This program is free software; you can redistribute it and/or
+ *  modify it under the terms of the GNU General Public License
+ *  as published by the Free Software Foundation; either version 2
+ *  of the License, or (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+ *  02111-1307, USA.
+ *
+ *  DESCRIPTION:
+ *  high-level game routines
+ *  AUTHOR: Mike Welsh
+ *-----------------------------------------------------------------------------
+ */
 
 
 static const char rcsid[] = "$Id: d_main.c,v 1.8 1997/02/03 22:45:09 b1 Exp $";
@@ -162,7 +164,6 @@ void D_ProcessEvents (void)
     event_t*	ev;
 	
     // IF STORE DEMO, DO NOT ACCEPT INPUT
-	// MIKE
     if ( ( gamemode == commercial )
 	  && (W_CheckNumForName("map01")<0) )
       return;
@@ -184,7 +185,8 @@ void D_WipeDraw()
 
 	 wipestart = I_GetTime () - 1;
 
-   /* do MIKE
+	// MIKE 11/08 don't busy wait here during wipes, let Flash update
+   /* do
     {
 	do
 	{
@@ -194,7 +196,8 @@ void D_WipeDraw()
 	wipestart =		nowtime;*/
 	done = wipe_ScreenWipe(wipe_Melt
 			       , 0, 0, SCREENWIDTH, SCREENHEIGHT, 1);
-	if(done)wipe = false; // MIKE
+	if(done)wipe = false;	// MIKE 11/08
+
 	I_UpdateNoBlit ();
 	M_Drawer ();                            // menu is drawn even on top of wipes
 	I_FinishUpdate ();                      // page flip or blit buffer
@@ -355,6 +358,7 @@ void D_Display (void)
 //
 extern  boolean         demorecording;
 
+// MIKE 11/08 main game loop, called every frame by Flash
 AS3_Val D_DoomLoop (void *data, AS3_Val args)
 {
 	AS3_Val flashframebuffer;
@@ -817,14 +821,14 @@ void D_DoomMain (void)
     int             p;
     char                    file[256];
 
-	for (p = 0 ; p<MAXWADFILES; p++)  //MIKE
+	for (p = 0 ; p<MAXWADFILES; p++)  // MIKE 11/08
 		wadfiles[p]=NULL;
 
     FindResponseFile ();
 	
     IdentifyVersion ();
 	
-	gameTime = 0;		// MIKE
+	gameTime = 0;		// MIKE 11/08
 
     setbuf (stdout, NULL);
     modifiedgame = false;
