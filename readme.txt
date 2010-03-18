@@ -29,10 +29,6 @@ A simple port of LinuxDoom to ActionScript bytecode via Alchemy,
 with hooks in place to pass the frame and sound buffers to Flash.
 
 TODO:
-- Instead of reading the _ram ByteArray in the AS and setting the BitmapData there, would it be better to instead pass the BitmapData into C and use the AS3_ByteArray functions to draw the frame buffer?  Should avoid the allocation of the gameScreen array.
-- Similarly for sound
-- Configurable controls, some sort of mouse control
-- Try turning singletics back off?  Properly implement I_GetTime using getTimer (or does Alchemy's time.h already do this?)
-- Seems to be some slight input lag -- is it related to my stupid implementation of I_GetTime, or is it just the Flash lagging in general, or is everything fine?  I've looked through the game code and haven't found anything yet.
-- Implementing music, using Timidity or some other software synthesizer
-- Switch to prBoom or some other more advanced source port
+- Lots of silliness and stupidity in the game choice screen
+- Instead of just copying + pasting the Heretic and Hexen codebases, unify support for all games into a single codebase
+- Switch to a smarter source port, such as PrBoom+

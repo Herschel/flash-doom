@@ -37,6 +37,7 @@ package
 	public class DoomContainer extends Sprite 
 	{		
 		private var _preloader:Sprite;
+		private var _doomMenu:Sprite;
 		private var _doomGame:Sprite;
 
 		public function DoomContainer()
@@ -55,10 +56,40 @@ package
 			
 			stage.quality = StageQuality.LOW;
 
+			showMenu();
+		}
+		
+		private function showMenu():void
+		{
+			var DoomMenuClass:Class = Class( getDefinitionByName("DoomMenuImpl") );
+			_doomMenu = new DoomMenuClass() as Sprite;
+			_doomMenu.addEventListener(Event.COMPLETE, startGameHandler);
+			
+			addChild( _doomMenu );
+		}
+		
+		private function startGame(gameType:String):void
+		{
 			var DoomGameClass:Class = Class( getDefinitionByName("DoomGame") );
-			_doomGame = Sprite( new DoomGameClass() );
-						
-			addChild( _doomGame );
+			_doomGame = Sprite( new DoomGameClass(gameType) );
+			_doomGame.addEventListener(Event.COMPLETE, gameFinishedHandler);
+			
+			addChild(_doomGame);
+		}
+		
+		private function startGameHandler( e:Event ):void
+		{
+			removeChild(_doomMenu);
+			var gameType:String = Object(_doomMenu).gameType;
+			_doomMenu = null;
+			startGame(gameType);
+		}
+		
+		private function gameFinishedHandler( e:Event ):void
+		{
+			removeChild(_doomGame);
+			_doomGame = null;
+			showMenu();
 		}
 	}
 	

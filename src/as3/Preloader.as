@@ -48,12 +48,14 @@ package
 		public var _playButton:Sprite;
 		public var _loadBar:Sprite;
 		
+		private var _loaded:Boolean;
+		
 		public function Preloader()
 		{
 			stop();
 			
 			// check that we are at least flash 10 compatible
-			if ( isFlashVersion(10) )
+			if ( isFlashVersion(10/*,0,12*/) )
 			{
 				gotoAndStop( "loading" );
 				
@@ -65,6 +67,8 @@ package
 				
 				addEventListener( Event.ENTER_FRAME, enterFrameHandler );
 				enterFrameHandler( null );
+				
+				_loaded = false;
 			}
 			else
 			{
@@ -78,27 +82,23 @@ package
 			}
 		}
 
-		private function isFlashVersion(major:uint, minor:uint = 0, revision:uint = 0):Boolean
+		private function isFlashVersion(major:uint, minor:uint = 0, buildNumber:uint = 0, internalBuildNumber:uint = 0):Boolean
 		{
 			var version:Array = Capabilities.version.split(" ")[1].split(",");
-
-			for (var i:uint = 0; i < 3; i++)
+			var requiredVersion:Array = arguments;
+			
+			for (var i:uint = 0; i < requiredVersion.length; i++)
 				version[i] = uint(version[i]);
 
-			
-			if ( version[0] > major ) return true;
-			else
+			for (i = 0; i < requiredVersion.length; i++)
 			{
-				if ( version[0] == major )
-				{
-					if ( version[1] > minor )
-						return true; 
-					else if ( version[1] == minor && version[2] > revision )
-						return true;
-				}
+				if (version[i] > requiredVersion[i])
+					return true;
+				if (version[i] < requiredVersion[i])
+					return false;	
 			}
 			
-			return false;
+			return true;
 		}
 		
 		private function enterFrameHandler(e:Event):void
@@ -106,16 +106,23 @@ package
 			if (!loaderInfo)
 				return;
 				
-			if( _loadBar )
-				_loadBar.width = 3 * Math.floor( 100 * (loaderInfo.bytesLoaded / loaderInfo.bytesTotal) );
-
-			if ( loaderInfo && loaderInfo.bytesLoaded == loaderInfo.bytesTotal )
+			if ( _loaded && _playButton && !_playButton.hasEventListener( MouseEvent.CLICK ) )
 			{
-				removeEventListener( Event.ENTER_FRAME, enterFrameHandler );
-				gotoAndStop( "loadingComplete" );
 				_playButton.addEventListener( MouseEvent.CLICK, playButtonClickHandler );
 				_playButton.buttonMode = true;
 				_playButton.useHandCursor = true;
+			}
+			
+			if(!_loaded)
+			{
+				if( _loadBar )
+					_loadBar.width = 3 * Math.floor( 100 * (loaderInfo.bytesLoaded / loaderInfo.bytesTotal) );
+	
+				if ( loaderInfo && loaderInfo.bytesLoaded == loaderInfo.bytesTotal )
+				{
+					gotoAndStop( "loadingComplete" );
+					_loaded = true;
+				}
 			}
 		}
 		
@@ -126,6 +133,7 @@ package
 		
 		private function playButtonClickHandler(e:MouseEvent):void
 		{
+			removeEventListener( Event.ENTER_FRAME, enterFrameHandler );
 			_playButton.removeEventListener( MouseEvent.CLICK, playButtonClickHandler );
 			gotoAndPlay("loadingTransition");
 		}

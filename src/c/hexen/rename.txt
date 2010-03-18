@@ -1,0 +1,4 @@
+for f in *; do
+g=`expr "xxx$f" : 'xxx\(.*\)' | tr '[A-Z]' '[a-z]'`
+mv "$f" "$g"
+done 
