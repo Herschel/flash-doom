@@ -15,7 +15,8 @@
 			i:Medal5,
 			j:Medal6,
 			k:Medal7,
-			l:Medal8;
+			l:Medal8,
+			m:DoomSettings;
 	}
 	
 }

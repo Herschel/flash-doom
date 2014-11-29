@@ -54,8 +54,8 @@ package
 		{
 			stop();
 			
-			// check that we are at least flash 10 compatible
-			if ( isFlashVersion(10/*,0,12*/) )
+			// check that we are at least flash 11 compatible
+			if ( isFlashVersion(11,3) )
 			{
 				gotoAndStop( "loading" );
 				

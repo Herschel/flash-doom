@@ -37,8 +37,11 @@ package
 	
 	import flash.display.Bitmap;
 	import flash.display.BitmapData;
+	import flash.display.BlendMode;
 	import flash.display.Sprite;
+	import flash.display.StageDisplayState;
 	import flash.events.Event;
+	import flash.events.FullScreenEvent;
 	import flash.events.MouseEvent;
 	import flash.events.KeyboardEvent;
 	import flash.events.SampleDataEvent;
@@ -47,6 +50,10 @@ package
 	import flash.net.navigateToURL;
 	import flash.net.SharedObject;
 	import flash.net.URLRequest;
+	import flash.text.TextFormatAlign;
+	import flash.text.TextField;
+	import flash.text.TextFormat;
+	import flash.text.TextFieldAutoSize;
 	import flash.ui.Keyboard;
 	import flash.ui.Mouse;
 	import flash.utils.ByteArray;
@@ -68,7 +75,7 @@ package
 		private var _lib:Object;
 		private var _ram:ByteArray;
 		
-		private var _saveData:SharedObject;
+		private var _settings:DoomSettings;
 		
 		private static const KEY_FORWARD:uint = 0;
 		private static const KEY_BACKWARD:uint = 1;
@@ -85,13 +92,17 @@ package
 		private static const KEY_USE_ITEM:uint = 12;
 		private static const KEY_JUMP:uint = 13;
 		private static const NUM_KEYS:uint = 14;
-		
+
 		private var _keys:Vector.<Boolean>;
 		private var _keyBindings:Array;
 		
 		private var _dragging:Boolean = false;
 		private var _lastMouseX:Number;
 		private var _lastMouseY:Number;
+
+		private var _mouseDx:Number;
+		private var _mouseDy:Number;
+		private var _mouseKeyCode:uint;
 		
 		private var _saveGames:SharedObject;
 		
@@ -108,7 +119,10 @@ package
 		private static const NGAPI_ENCRYPT_KEY:String = "K5EUDyrsPmUfpE5z39Sbp7OwVYAes8vr";
 			
 		private var _medalNameMap:Array = ["Find Some Meat", "E1M9", "Where's Episode 2?", "Cockadoodledoo", "The Graveyard", "Blasphemer", "Master Fighter", "Master Cleric", "Master Mage"];
-		private var _medalPopup:Sprite;
+		private var _medalPopup:NewgroundsAPIMedalPopup;
+
+		private var _fullScreenText:Sprite;
+		private var _fullScreenTextTimer:Number;
 		
 		[Embed(source = "../../data/doom1.wad", mimeType = "application/octet-stream")]
 		private static const DoomWadClass:Class;
@@ -152,35 +166,16 @@ package
 			_sound = new Sound();
 			_sound.addEventListener( SampleDataEvent.SAMPLE_DATA, sampleDataHandler );
 			
-			_saveData = SharedObject.getLocal("DoomTriplePack");
-			_keyBindings = _saveData.data.keyBindings;
-			if(!_keyBindings)
-			{
-				_keyBindings = new Array(NUM_KEYS);
-				
-				for (i = 0; i < NUM_KEYS; i++)
-					_keyBindings[i] = 0;
-				
-				_keyBindings[KEY_FORWARD] = 87;
-				_keyBindings[KEY_BACKWARD] = 83;
-				_keyBindings[KEY_FIRE] = Keyboard.SPACE;
-				_keyBindings[KEY_USE] = 82;
-				_keyBindings[KEY_TURNLEFT] = Keyboard.LEFT;
-				_keyBindings[KEY_TURNRIGHT] = Keyboard.RIGHT;
-				_keyBindings[KEY_RUN] = Keyboard.SHIFT;
-				_keyBindings[KEY_STRAFELEFT] = 65;
-				_keyBindings[KEY_STRAFERIGHT] = 68;
-				_keyBindings[KEY_INVENTORY_LEFT] = 219;
-				_keyBindings[KEY_INVENTORY_RIGHT] = 221;
-				_keyBindings[KEY_USE_ITEM] = Keyboard.ENTER;
-				_keyBindings[KEY_JUMP] = 81;
-				_saveData.data.keyBindings = _keyBindings;
-			}
-			
+			_mouseDx = _mouseDy = 0;
+
+			_settings = new DoomSettings();
+			_keyBindings = _settings.keyBindings;
+			_mouseKeyCode = _settings.mouseKeyCode;
+
 			_keys = new Vector.<Boolean>(256, true);
 			for (i = 0; i < 256; i++)
 				_keys[i] = false;
-							
+
 			var libInit:Object;
 			var gameClass:Class;
 			switch(_gameType)
@@ -245,7 +240,7 @@ package
 			
 			_medalPopup = new NewgroundsAPIMedalPopup();
 			addChild(_medalPopup);
-			
+
 			addEventListener( Event.ADDED_TO_STAGE, addedToStageHandler );
 		}
 		
@@ -265,20 +260,112 @@ package
 			stage.addEventListener(Event.ENTER_FRAME, enterFrameHandler);
 			stage.addEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
 			stage.addEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
-			
+			stage.addEventListener(Event.MOUSE_LEAVE, mouseUpHandler);
+			stage.addEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			stage.addEventListener(FullScreenEvent.FULL_SCREEN, fullScreenHandler);
+			stage.addEventListener(FullScreenEvent.FULL_SCREEN_INTERACTIVE_ACCEPTED, fullScreenAcceptedHandler);
+			addEventListener(Event.DEACTIVATE, deactivateHandler);
+
 			NewgroundsAPI.connectMovie(this, NGAPI_MOVIE_ID, NGAPI_ENCRYPT_KEY, false);
 			NewgroundsAPI.loadMedals();
 			
-			_medalPopup.x = stage.stageWidth/2 - _medalPopup.width/2;
-			_medalPopup.y = 32;
+			_medalPopup.x = -2048;
 			
+			toggleFullScreen();
+
+			var fullScreenTextField:TextField = new TextField();
+			fullScreenTextField.multiline = false;
+			fullScreenTextField.selectable = false;
+			fullScreenTextField.autoSize = TextFieldAutoSize.CENTER;
+			var textFormat:TextFormat = new TextFormat();
+			textFormat.align = TextFormatAlign.CENTER;
+			textFormat.color = 0xffffffff;
+			textFormat.size = 24;
+			textFormat.bold = true;
+			fullScreenTextField.x = (stage.stageWidth - fullScreenTextField.width)/2;
+			fullScreenTextField.y = 2;
+			fullScreenTextField.defaultTextFormat = textFormat;
+			fullScreenTextField.text = "Press Alt + Enter to re-enter full screen mode.";
+
+			_fullScreenText = new Sprite();
+			_fullScreenText.addChild( fullScreenTextField );
+			_fullScreenText.graphics.beginFill( 0, 0756 );
+			_fullScreenText.graphics.drawRect( 0, 0, stage.stageWidth, fullScreenTextField.height + 4 );
+			_fullScreenText.graphics.endFill();
+			_fullScreenText.y = 100;
+			_fullScreenText.visible = false;
+			_fullScreenText.blendMode = BlendMode.LAYER;
+			addChild(_fullScreenText);
+
 			_frames = 0;
 			_time = getTimer();
 		}
 		
-		
+		private function toggleFullScreen():void
+		{
+			if(stage)
+			{
+				if(stage.displayState == StageDisplayState.NORMAL )
+				{
+					try
+					{
+						stage.displayState = StageDisplayState.FULL_SCREEN_INTERACTIVE;
+					}
+					catch(error:*) { }
+				}
+				else
+				{
+					stage.displayState = StageDisplayState.NORMAL;
+					isMouseLocked = false;
+				}
+			}
+		}
+
+		private function fullScreenHandler(e:FullScreenEvent):void
+		{
+			if(_fullScreenText)
+			{
+				if(!e.fullScreen)
+				{
+					_fullScreenText.visible = true;
+					_fullScreenTextTimer = 5.0;
+				}
+				else
+				{
+					_fullScreenText.visible = false;
+				}
+			}
+		}
+
+		private function fullScreenAcceptedHandler(e:FullScreenEvent):void
+		{
+			isMouseLocked = true;
+		}
+
+		private function set isMouseLocked(v:Boolean):void
+		{
+			try
+			{
+				stage.mouseLock = v;
+				if(stage.mouseLock)
+				{
+					Mouse.hide();
+				}
+			}
+			catch(error:*) { }
+		}
+
+		private function get isMouseLocked():Boolean
+		{
+			try
+			{
+				return stage.mouseLock;
+			}
+			catch(error:*) { }
+			return false;
+		}
+
 		// GAME TICK
-		
 		private function enterFrameHandler(e:Event):void
 		{
 			var ptr:uint;
@@ -292,15 +379,34 @@ package
 			i = 0;
 			while (i<MAX_FRAME_SKIP && _frameAccumulator >= 1000 / GAME_FRAMERATE)
 			{
-				if(_dragging && stage)
+				if(stage)
 				{
-					var dx:int = stage.mouseX - _lastMouseX;
-					var dy:int = stage.mouseY - _lastMouseY;
-					_lib.mouseMove(dx*MOUSE_SCALE, dy*MOUSE_SCALE);
-					_lastMouseX = stage.mouseX;
-					_lastMouseY = stage.mouseY;
+					if( isMouseLocked )
+					{
+						_lib.mouseMove( _mouseDx*MOUSE_SCALE, _mouseDy*MOUSE_SCALE );
+						_mouseDx = _mouseDy = 0;
+					}
+					else
+					{
+						if(_dragging)
+						{
+							var dx:int = stage.mouseX - _lastMouseX;
+							var dy:int = stage.mouseY - _lastMouseY;
+							_lib.mouseMove( dx*MOUSE_SCALE, dy*MOUSE_SCALE );
+							_lastMouseX = stage.mouseX;
+							_lastMouseY = stage.mouseY;
+						}
+					}
 				}
+
 				_lib.tick();
+
+				// If not mouse-locked, we have to allow dragging to simulate mouse-lock.
+				// Therefore, only fire click binding for one frame.
+				if(!isMouseLocked && _dragging && _mouseKeyCode && !_keys[_mouseKeyCode])
+				{
+					_lib.keyUp(_mouseKeyCode);
+				}
 							
 				ptr = _lib.getSoundData();
 				_soundBuffer.writeBytes( _ram, ptr, GAME_SOUNDBUFF_SIZE );
@@ -329,7 +435,18 @@ package
 				_soundChannel.addEventListener(Event.SOUND_COMPLETE, soundCompleteHandler);
 			}
 
-			if (_quitting)doQuit();		// catch if game exited
+			if( _fullScreenText && _fullScreenText.visible )
+			{
+				_fullScreenTextTimer -= dt / 1000;
+				_fullScreenText.alpha = Math.min( Math.max( _fullScreenTextTimer, 0.0 ), 1.0 );
+				if( _fullScreenText.alpha <= 0 )
+				{
+					_fullScreenText.visible = false;
+				}
+
+			}
+
+			if (_quitting) doQuit();		// catch if game exited
 		}
 		
 		private function sampleDataHandler(event:Event):void
@@ -364,6 +481,12 @@ package
 		
 		private function keyDownHandler(e:KeyboardEvent):void
 		{
+			if(e.altKey && e.keyCode == Keyboard.ENTER)
+			{
+				toggleFullScreen();
+				return;
+			}
+
 			if(_lib && !_keys[e.keyCode])
 			{
 				_lib.keyDown( e.keyCode );
@@ -383,22 +506,56 @@ package
 		
 		private function mouseDownHandler(e:MouseEvent):void
 		{
+			_dragging = true;
 			Mouse.hide();
 			if(stage)
 			{
-				_dragging = true;
 				_lastMouseX = stage.mouseX;
 				_lastMouseY = stage.mouseY;
 			}
+
+			// Clicking also activates a button key
+			if(_mouseKeyCode)
+				_lib.keyDown(_mouseKeyCode);
 		}
 		
-		private function mouseUpHandler(e:MouseEvent):void
+		private function mouseUpHandler(e:Event):void
+		{
+			if(!isMouseLocked)
+			{
+				Mouse.show();
+			}
+			else if( _mouseKeyCode && !_keys[_mouseKeyCode])
+			{
+				_lib.keyUp(_mouseKeyCode);
+			}
+
+			_dragging = false;
+		}
+
+		private function deactivateHandler(e:Event):void
 		{
 			Mouse.show();
 			_dragging = false;
+			for(var i:int=0; i<256; ++i)
+			{
+				if(_keys[i])
+				{
+					_keys[i] = false;
+					_lib.keyUp(i);
+				}
+			}
 		}
 		
-		
+		private function mouseMoveHandler(e:MouseEvent):void
+		{
+			try
+			{
+				_mouseDx += e.movementX;
+				_mouseDy += e.movementY;
+			}
+			catch(error:*) { }
+		}
 		
 		// C++ hooks into Flash
 		
@@ -428,6 +585,11 @@ package
 		
 		public function awardMedal(medalId:uint):void
 		{			
+			if(_medalPopup)
+			{
+				_medalPopup.x = (stage.stageWidth - _medalPopup.width)/2;
+				_medalPopup.y = 32;
+			}
 			NewgroundsAPI.unlockMedal(_medalNameMap[medalId]);
 		}
 		
@@ -445,10 +607,16 @@ package
 			
 			removeEventListener(SampleDataEvent.SAMPLE_DATA, sampleDataHandler);
 			stage.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
-			
 			stage.removeEventListener( KeyboardEvent.KEY_DOWN, keyDownHandler );
 			stage.removeEventListener( KeyboardEvent.KEY_UP, keyUpHandler );
-			
+			stage.removeEventListener(MouseEvent.MOUSE_DOWN, mouseDownHandler);
+			stage.removeEventListener(MouseEvent.MOUSE_UP, mouseUpHandler);
+			stage.removeEventListener(Event.MOUSE_LEAVE, mouseUpHandler);
+			stage.removeEventListener(MouseEvent.MOUSE_MOVE, mouseMoveHandler);
+			stage.removeEventListener(FullScreenEvent.FULL_SCREEN, fullScreenHandler);
+			stage.removeEventListener(FullScreenEvent.FULL_SCREEN_INTERACTIVE_ACCEPTED, fullScreenAcceptedHandler);
+			removeEventListener(Event.DEACTIVATE, deactivateHandler);
+
 			if (_soundChannel)
 			{
 				_soundChannel.stop();
@@ -464,8 +632,8 @@ package
 			_saveGames.flush();
 			_saveGames = null;
 			
-			_saveData.flush();
-			_saveData = null;
+			_settings.flush();
+			_settings = null;
 			
 			_lib = null;
 			_ram = null;

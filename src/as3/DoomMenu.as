@@ -1,11 +1,11 @@
-﻿package 
+package 
 {
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
+	import flash.display.StageDisplayState;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
 	import flash.events.MouseEvent;
-	import flash.net.SharedObject;
 	import flash.text.TextField;
 	import flash.ui.Keyboard;
 		
@@ -33,27 +33,10 @@
 		
 		private var _gameType:String;
 
-		private var _saveData:SharedObject;
-		private var _keyBindings:Array;
+		private var _settings:DoomSettings;
 		private var _keyTexts:Array;
 		
-		private var _selectedKey:uint;
-		
-		private static const KEY_FORWARD:uint = 0;
-		private static const KEY_BACKWARD:uint = 1;
-		private static const KEY_TURNRIGHT:uint = 2;
-		private static const KEY_TURNLEFT:uint = 3;
-		private static const KEY_FIRE:uint = 4;
-		private static const KEY_USE:uint = 5;
-		private static const KEY_STRAFELEFT:uint = 6;
-		private static const KEY_STRAFERIGHT:uint = 7;
-		private static const KEY_STRAFE:uint = 8;
-		private static const KEY_RUN:uint = 9;
-		private static const KEY_INVENTORY_LEFT:uint = 10;
-		private static const KEY_INVENTORY_RIGHT:uint = 11;
-		private static const KEY_USE_ITEM:uint = 12;
-		private static const KEY_JUMP:uint = 13;
-		private static const NUM_KEYS:uint = 14;
+		private var _selectedKey:int;
 		
 		public function DoomMenu():void
 		{
@@ -97,7 +80,7 @@
 			
 			dispatchEvent(new Event(Event.COMPLETE));
 		}
-		
+
 		public function get gameType():String	{ return _gameType; }
 		
 		public function initControlsMenu():void
@@ -105,42 +88,19 @@
 			_keyTexts =
 				[_forwardText, _backwardText, _turnRightText, _turnLeftText, _fireText, _useText, _strafeLeftText, _strafeRightText, null,
 				_runText, _inventoryLeftText, _inventoryRightText, _inventoryUseText, _jumpText];
-				
-			_saveData = SharedObject.getLocal("DoomTriplePack");
-			_keyBindings = _saveData.data.keyBindings;
 
-			if(!_keyBindings)
-			{
-				_keyBindings = new Array(NUM_KEYS);
-				
-				for (i = 0; i < NUM_KEYS; i++)
-					_keyBindings[i] = 0;
-				
-				_keyBindings[KEY_FORWARD] = 87;
-				_keyBindings[KEY_BACKWARD] = 83;
-				_keyBindings[KEY_FIRE] = Keyboard.SPACE;
-				_keyBindings[KEY_USE] = 82;
-				_keyBindings[KEY_TURNLEFT] = Keyboard.LEFT;
-				_keyBindings[KEY_TURNRIGHT] = Keyboard.RIGHT;
-				_keyBindings[KEY_RUN] = Keyboard.SHIFT;
-				_keyBindings[KEY_STRAFELEFT] = 65;
-				_keyBindings[KEY_STRAFERIGHT] = 68;
-				_keyBindings[KEY_INVENTORY_LEFT] = 219;
-				_keyBindings[KEY_INVENTORY_RIGHT] = 221;
-				_keyBindings[KEY_USE_ITEM] = Keyboard.ENTER;
-				_keyBindings[KEY_JUMP] = 81;
-				
-				_saveData.data.keyBindings = _keyBindings;
-			}
+			_settings = new DoomSettings();
+
+			_selectedKey = -1;
 			
 			for (var i:uint = 0; i < _keyTexts.length; i++)
 			{
 				if (_keyTexts[i])
 				{
-					_keyTexts[i].text.text = keyString(uint(_keyBindings[i]));
 					_keyTexts[i].addEventListener(MouseEvent.CLICK, changeBindingHandler, false, 0, true);
 					_keyTexts[i].buttonMode = true;
 					_keyTexts[i].mouseChildren = false;
+					updateBindingText(i);
 				}
 			}
 			
@@ -150,13 +110,24 @@
 		
 		private function backClickedHandler(e:MouseEvent):void
 		{
-			_saveData.flush();
+			_settings.flush();
 			if (stage.hasEventListener(KeyboardEvent.KEY_DOWN))
 				stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownHandler);
 				
-			_saveData = null;
+			_settings = null;
 			
 			initGameMenu();
+		}
+
+		private function updateBindingText(selectedKey:int):void
+		{
+			var str:String = keyString(_settings.keyBindings[selectedKey]);
+			if(selectedKey == _settings.mouseButton)
+			{
+				if( _settings.keyBindings[selectedKey] ) str += "/";
+				str += "click";
+			}
+			_keyTexts[selectedKey].text.text = str;
 		}
 		
 		private function changeBindingHandler(e:MouseEvent):void
@@ -165,6 +136,20 @@
 				if (_keyTexts[i] == e.target)
 					break;
 			
+			if (_selectedKey == i)
+			{
+				var oldButton:int = _settings.mouseButton;
+				_settings.mouseButton = i;
+				if( _settings.mouseButton >= 0 ) updateBindingText( oldButton );
+				updateBindingText( i );
+				stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownHandler);
+				return;
+			}
+			else if (_selectedKey != -1)
+			{
+				updateBindingText( _selectedKey );
+			}
+
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, keyDownHandler, false, 0, true);
 			_selectedKey = i;
 			_keyTexts[i].text.text = "press a key";
@@ -175,9 +160,10 @@
 			if (e.keyCode == Keyboard.ESCAPE) return;
 			if (e.keyCode >= 0x30 && e.keyCode <= 0x39) return;
 			
-			_keyBindings[_selectedKey] = e.keyCode;
-			_keyTexts[_selectedKey].text.text = keyString(e.keyCode);
-			
+			_settings.keyBindings[_selectedKey] = e.keyCode;
+			updateBindingText(_selectedKey);
+			_selectedKey = -1;
+
 			stage.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownHandler);
 		}
 		

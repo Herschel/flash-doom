@@ -1,7 +1,7 @@
 ﻿package com.newgrounds
 {
 	import com.adobe.crypto.MD5;
-	import com.adobe.serialization.json.JSON;
+	import com.adobe.serialization.json.JSON_;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.Loader;
@@ -362,13 +362,13 @@
 		
 		public static function encodeData(data:Object):String
 		{
-			return compressHex(RC4.encrypt(JSON.encode(data), encryption_key));
+			return compressHex(RC4.encrypt(JSON_.encode(data), encryption_key));
 		}
 		
 		public static function decodeData(base:String):*
 		{
 			
-			return JSON.decode(RC4.decrypt(uncompressHex(base), encryption_key));
+			return JSON_.decode(RC4.decrypt(uncompressHex(base), encryption_key));
 		}
 		
 		private static function compressHex(hex_value:String):String
@@ -1178,7 +1178,7 @@
 			// get the md5 value of our seed.  This is a hex format
 			var hash:String = MD5.hash(seed);
 			// encode and encrypt our secure params
-			var rc4enc:String = RC4.encrypt(JSON.encode(secure_params), encryption_key);
+			var rc4enc:String = RC4.encrypt(JSON_.encode(secure_params), encryption_key);
 			// Merge the resulting hex string with the md5 hash
 			var hex_value:String = hash+rc4enc;
 			
@@ -1207,7 +1207,7 @@
 			var response:Object;
 			if (loader.data) {
 				// decode the server response
-				response = JSON.decode(loader.data);
+				response = JSON_.decode(loader.data);
 			} else {
 				response = {success:false};
 			}
@@ -1261,7 +1261,7 @@
 			}
 	
 			// dump the output object for API developer debugging
-			echo("OUTPUT: \n" + JSON.encode(output) + "\n");
+			echo("OUTPUT: \n" + JSON_.encode(output) + "\n");
 			
 			var urlRequest:URLRequest = new URLRequest(GATEWAY_URL + "?seed=" + Math.random());
 			urlRequest.data = output;

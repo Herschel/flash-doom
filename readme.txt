@@ -23,12 +23,23 @@
 
   
 Requires the Adobe Alchemy Toolkit preview.
-Specifically, the ALCHEMY_HOME variable should point to your Alchemy directory.
+Specifically, the ALCHEMY_HOME variable should point to your Alchemy
+directory.
 
 A simple port of LinuxDoom to ActionScript bytecode via Alchemy,
 with hooks in place to pass the frame and sound buffers to Flash.
 
 TODO:
 - Lots of silliness and stupidity in the game choice screen
-- Instead of just copying + pasting the Heretic and Hexen codebases, unify support for all games into a single codebase
+- Instead of just copying + pasting the Heretic and Hexen codebases,
+    unify support for all games into a single codebase
 - Switch to a smarter source port, such as PrBoom+
+
+UPDATE 11/29/2014
+Added support for mouse-locking and interactive full-screen mode which were
+added to the Flash Player over the past many versions.
+Also added support for binding a key to a left mouse click, and cleaned up
+the code a tiny bit.
+This is probably my last and only update.
+I won't bother to update the C code and tooling to use FlasCC as opposed to
+the Alchemy beta. The old Alchemy generated SWCs still seem to work.
